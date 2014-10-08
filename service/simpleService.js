@@ -242,6 +242,7 @@ SimpleService.prototype.getHistory = function(publicAddressString, token, callba
     } else {
 
 
+
     }
   });
 
