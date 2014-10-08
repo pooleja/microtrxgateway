@@ -130,6 +130,45 @@ SimpleService.prototype.getPaymentAddress = function(publicAddressString, callba
 
 };
 
+function getBalance(payment, amount, timeout, callback){
+
+  Payment.findOne({paymentAddress: payment.paymentAddress}, function(err, currentPayment){
+    if(err || !currentPayment ){
+         console.log("Failed to find payment request for " + paymentAddressString + " with error " + err);
+         callback("Failed to find existing payment request for " + paymentAddressString);
+         return;
+      } else {
+
+        var returnVal = {
+             paymentAddress : currentPayment.paymentAddress,
+             amountReceived : currentPayment.amountReceived
+          };
+
+        if(currentPayment.amountReceived >= amount){
+
+          // Payment has been made
+          returnVal.timeout = false;
+          callback(null, returnVal);
+
+        }
+        else if (timeout > 0){
+
+          // Wait and check again in a second
+          timeout = timeout - 1;
+          setTimeout(function(){
+            getBalance(payment, amount, timeout, callback);
+          }, 1000);
+        }
+        else{
+
+          // Timed out after waiting
+          returnVal.timeout = true;
+          callback(null, returnVal);
+        }
+      }
+  });
+}
+
 
 SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, timeout, callback){
 
@@ -165,8 +204,45 @@ SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, t
          return;
       } else {
 
-
+        getBalance(currentPayment, amount, timeout, callback);
       }
+  });
+
+};
+
+
+SimpleService.prototype.getHistory = function(publicAddressString, token, callback){
+
+  // Make sure the public address was passed in
+  if(publicAddressString === null || publicAddressString === ''){
+    callback("publicAddress parameter must not be empty.");
+    return;
+  }
+
+  // Make sure the address is valid
+  var publicAddress = new Address(publicAddressString);
+  if(!publicAddress.isValid()){
+    callback("paymentAddress is invalid Bitcoin address.");
+    return;
+  }
+
+  // Make sure the token was passed in
+  if(token === null || token === ''){
+    callback("token parameter must not be empty.");
+    return;
+  }
+
+  // Search for the address registration with matching token
+  AddressRegistration.findOne({address: publicAddressString, token : token}, function(err, currentPayment){
+
+    if(err || !currentPayment ){
+       console.log("Failed to find payment registration for " + publicAddressString + " with error " + err);
+       callback("Failed to find address or invalid token for " + publicAddressString);
+       return;
+    } else {
+
+
+    }
   });
 
 };

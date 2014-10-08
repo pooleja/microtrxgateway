@@ -6,7 +6,7 @@ var Env = require('../../config/env.js');
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/microtrxgateway');
-
+var Payment = require('../../models/simple/payment.js');
 
 var svc = new SimpleService();
 
@@ -71,6 +71,7 @@ describe('SimpleServiceTest', function () {
 
       });
    });
+
 
    describe('getPaymentAddress', function () {
 
@@ -184,13 +185,155 @@ describe('SimpleServiceTest', function () {
          var hash = bitcore.util.sha256ripe160(key2.public);
          var addr3 = new bitcore.Address(version, hash);
 
-         svc.verifyPayment(addr3.toString(), null, null, function(error, registration){
+         svc.verifyPayment(addr3.toString(), null, null, function(error, paymentInfo){
             error.should.not.be.empty;
             done();
          });
       });
 
+      it('should accept a known address but return 0 if no payment was made', function (done) {
+         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            (!error || error === null).should.be.true;
+            var firstAddress = registration.paymentAddress;
+            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+               var secondAddress = registration.paymentAddress;
 
+               svc.verifyPayment(secondAddress, 1, 0, function(error, paymentInfo){
+                   (!error || error === null).should.be.true;
+
+                   paymentInfo.paymentAddress.should.equal(secondAddress);
+                   paymentInfo.amountReceived.should.equal(0);
+                   paymentInfo.timeout.should.equal(true);
+
+                  done();
+               });
+            });
+
+         });
+      });
+
+      it('should accept a known address but return 0 if no payment was made after a timeout of 1 second', function (done) {
+         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            (!error || error === null).should.be.true;
+            var firstAddress = registration.paymentAddress;
+            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+               var secondAddress = registration.paymentAddress;
+
+               svc.verifyPayment(secondAddress, 1, 1, function(error, paymentInfo){
+                   (!error || error === null).should.be.true;
+
+                   paymentInfo.paymentAddress.should.equal(secondAddress);
+                   paymentInfo.amountReceived.should.equal(0);
+                   paymentInfo.timeout.should.equal(true);
+
+                  done();
+               });
+            });
+
+         });
+      });
+
+      it('should accept a known address and return manually set value during wait time', function (done) {
+         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            (!error || error === null).should.be.true;
+            var firstAddress = registration.paymentAddress;
+            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+               var secondAddress = registration.paymentAddress;
+
+               svc.verifyPayment(secondAddress, 1, 1, function(error, paymentInfo){
+                   (!error || error === null).should.be.true;
+
+                   paymentInfo.paymentAddress.should.equal(secondAddress);
+                   paymentInfo.amountReceived.should.equal(1);
+                   paymentInfo.timeout.should.equal(false);
+
+                  done();
+               });
+
+               Payment.findOne({paymentAddress: secondAddress}, function(err, currentPayment){
+                  currentPayment.amountReceived = 1;
+                  currentPayment.save();
+               });
+            });
+
+         });
+      });
+
+      it('should accept a known address and return manually set value if it is over requested amount', function (done) {
+         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            (!error || error === null).should.be.true;
+            var firstAddress = registration.paymentAddress;
+            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+               var secondAddress = registration.paymentAddress;
+
+               Payment.findOne({paymentAddress: secondAddress}, function(err, currentPayment){
+                  currentPayment.amountReceived = 100;
+                  currentPayment.save(function (err, tempChannel) {
+                     svc.verifyPayment(secondAddress, 1, 0, function(error, paymentInfo){
+                         (!error || error === null).should.be.true;
+
+                         paymentInfo.paymentAddress.should.equal(secondAddress);
+                         paymentInfo.amountReceived.should.equal(100);
+                         paymentInfo.timeout.should.equal(false);
+
+                        done();
+                     });
+                  });
+               });
+            });
+
+         });
+      });
+
+   });
+
+   describe('getHistory', function () {
+
+      it('should validate input address null', function (done) {
+         svc.getHistory(null, null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input address blank', function (done) {
+
+         svc.getHistory("", null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input address asdf', function (done) {
+
+         svc.getHistory("asdf", null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate token null', function (done) {
+         svc.getHistory(addr1.toString(), null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate token blank', function (done) {
+
+         svc.getHistory(addr1.toString(), "", function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate validate it cant find an invalid token', function (done) {
+
+         svc.getHistory(addr1.toString(), "asdfasdf", function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
 
    });
 });
