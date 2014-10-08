@@ -37,5 +37,20 @@ router.get('/payments', function(req, res) {
    });
 });
 
+router.get('/payments/:paymentAddress', function(req, res) {
+
+   service.verifyPayment(req.params.paymentAddress, req.query.amount, req.query.timeout, function(error, verification){
+
+      // Check for failure
+      if(error){
+         res.json ( {success : "false", error: error});
+         return;
+      }
+
+      // Success
+      res.json({success : "true", result: verification});
+   });
+});
+
 
 module.exports = router;
