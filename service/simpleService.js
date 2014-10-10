@@ -10,6 +10,7 @@ var Counter = require('../models/counter.js');
 var Keys = require('../config/keys.js');
 var Env = require('../config/env.js');
 
+
 function SimpleService(){
 
 }
@@ -211,7 +212,7 @@ SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, t
 };
 
 
-SimpleService.prototype.getHistory = function(publicAddressString, token, callback){
+SimpleService.prototype.getHistory = function(publicAddressString, token, page, total, callback){
 
   // Make sure the public address was passed in
   if(publicAddressString === null || publicAddressString === ''){
@@ -232,18 +233,49 @@ SimpleService.prototype.getHistory = function(publicAddressString, token, callba
     return;
   }
 
-  // Search for the address registration with matching token
-  AddressRegistration.findOne({address: publicAddressString, token : token}, function(err, currentPayment){
+  console.log("Finding registration with address: " + publicAddressString +  " and token:" + token);
 
-    if(err || !currentPayment ){
+  // Search for the address registration with matching token
+  AddressRegistration.findOne({address: publicAddressString, secretToken : token}, function(err, currentRegistration){
+
+    if(err || !currentRegistration ){
        console.log("Failed to find payment registration for " + publicAddressString + " with error " + err);
        callback("Failed to find address or invalid token for " + publicAddressString);
        return;
     } else {
 
+      var startPage = 1;
+      if(page && page > 0)
+        startPage = page;
 
+      var countRet = 10;
+      if(total && total > 0 && total <= 100)
+        countRet = total;
+
+      Payment.paginate({clientAddress: publicAddressString}, startPage, countRet, function(error, pageCount, paginatedResults, itemCount) {
+        if (error) {
+          console.log("Failed to find payment history for " + publicAddressString + " with error " + err);
+           callback("Failed to find history for " + publicAddressString);
+           return;
+        } else {
+
+          var retList = [];
+          paginatedResults.map( function(item) {
+            var temp = {
+              clientAddress: item.clientAddress,
+              paymentAddress: item.paymentAddress,
+              amountReceived: item.amountReceived
+            };
+
+            retList.push(temp);
+          });
+
+          callback(null, retList);
+        }
+      }, { sortBy : { '_id' : -1 } });
 
     }
+
   });
 
 };

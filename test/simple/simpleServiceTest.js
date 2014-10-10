@@ -27,46 +27,54 @@ key2.regenerateSync();
 var hash = bitcore.util.sha256ripe160(key2.public);
 var addr2 = new bitcore.Address(version, hash);
 
+var addr1Token = "";
+
 
 describe('SimpleServiceTest', function () {
    describe('registerAddress', function () {
 
-      it('should validate input address null', function () {
+      it('should validate input address null', function (done) {
          svc.registerAddress(null, function(error, registration){
             error.should.not.be.empty;
+            done();
          });
       });
 
-      it('should validate input address blank', function () {
+      it('should validate input address blank', function (done) {
 
          svc.registerAddress("", function(error, registration){
             error.should.not.be.empty;
+            done();
          });
 
       });
 
-      it('should validate input address asdf', function () {
+      it('should validate input address asdf', function (done) {
 
          svc.registerAddress("asdf", function(error, registration){
             error.should.not.be.empty;
+            done();
          });
       });
 
-      it('should save a registration', function () {
+      it('should save a registration', function (done) {
          svc.registerAddress(addr1.toString(), function(error, registration){
             (!error || error === null).should.be.true;
             registration.should.be.ok;
             registration.secretToken.should.be.ok;
             registration.address.should.be.ok;
             registration.address.should.equal(addr1.toString());
+            addr1Token = registration.secretToken;
+            done();
          });
 
       });
 
-      it('should fail a second a registration', function () {
+      it('should fail a second a registration', function (done) {
 
          svc.registerAddress(addr1.toString(), function(error, registration){
             error.should.not.be.empty;
+            done();
          });
 
       });
@@ -75,23 +83,26 @@ describe('SimpleServiceTest', function () {
 
    describe('getPaymentAddress', function () {
 
-      it('should validate input address null', function () {
+      it('should validate input address null', function (done) {
          svc.getPaymentAddress(null, function(error, registration){
             error.should.not.be.empty;
+            done();
          });
       });
 
-      it('should validate input address blank', function () {
+      it('should validate input address blank', function (done) {
 
          svc.getPaymentAddress("", function(error, registration){
             error.should.not.be.empty;
+            done();
          });
       });
 
-      it('should validate input address asdf', function () {
+      it('should validate input address asdf', function (done) {
 
          svc.getPaymentAddress("asdf", function(error, registration){
             error.should.not.be.empty;
+            done();
          });
       });
 
@@ -290,7 +301,7 @@ describe('SimpleServiceTest', function () {
    describe('getHistory', function () {
 
       it('should validate input address null', function (done) {
-         svc.getHistory(null, null, function(error, registration){
+         svc.getHistory(null, null, null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
@@ -298,7 +309,7 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address blank', function (done) {
 
-         svc.getHistory("", null, function(error, registration){
+         svc.getHistory("", null, null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
@@ -306,14 +317,14 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address asdf', function (done) {
 
-         svc.getHistory("asdf", null, function(error, registration){
+         svc.getHistory("asdf", null, null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
       });
 
       it('should validate token null', function (done) {
-         svc.getHistory(addr1.toString(), null, function(error, registration){
+         svc.getHistory(addr1.toString(), null, null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
@@ -321,19 +332,26 @@ describe('SimpleServiceTest', function () {
 
       it('should validate token blank', function (done) {
 
-         svc.getHistory(addr1.toString(), "", function(error, registration){
+         svc.getHistory(addr1.toString(), "", null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
       });
 
-      it('should validate validate it cant find an invalid token', function (done) {
+      it('should validate it cant find an invalid token', function (done) {
 
-         svc.getHistory(addr1.toString(), "asdfasdf", function(error, registration){
+         svc.getHistory(addr1.toString(), "asdfasdf", null, null, function(error, payments){
             error.should.not.be.empty;
             done();
          });
       });
 
+      it('should get results for known address and token', function (done) {
+
+         svc.getHistory(addr1.toString(), addr1Token, null, null, function(error, payments){
+            payments.should.not.be.empty;
+            done();
+         });
+      });
    });
 });

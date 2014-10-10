@@ -54,7 +54,7 @@ router.get('/payments/:paymentAddress', function(req, res) {
 
 router.get('/payments/:paymentAddress/history', function(req, res) {
 
-   service.getHistory(req.params.paymentAddress, req.query.token, function(error, verification){
+   service.getHistory(req.params.paymentAddress, req.query.token, req.query.page, req.query.total, function(error, verification){
 
       // Check for failure
       if(error){
