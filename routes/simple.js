@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var service = require('../classes/simpleService');
-
+var SimpleService = require('../service/simpleService');
+var service = new SimpleService();
 /**
  * Request handler for POST to /addresses.
  *

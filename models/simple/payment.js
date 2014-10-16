@@ -4,10 +4,9 @@ var mongoosePaginate = require('mongoose-paginate');
 var paymentSchema = mongoose.Schema({
 
    clientAddress: {type: String, required: true},
-   paymentAddress: {type: String, required: true},
+   paymentAddress: {type: String, required: true, unique: true},
    amountReceived: Number,
-   keyId: Number,
-
+   keyId: Number
 });
 
 paymentSchema.plugin(mongoosePaginate);
