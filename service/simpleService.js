@@ -15,31 +15,39 @@ function SimpleService(){
 
 }
 
+
+function validateAddress(addressString){
+
+  if(!addressString || addressString === null || addressString === ''){
+      return false;
+   }
+
+   var address = new Address(addressString);
+   if(!address.isValid()){
+      return false;
+   }
+
+   return true;
+}
+
 /**
  * Takes a public address string and returns a payment registration object
  */
 SimpleService.prototype.registerAddress = function(publicAddressString, callback){
 
-   // Make sure the public address was passed in
-   if(publicAddressString === null || publicAddressString === ''){
-      callback("publicAddress parameter must not be empty.");
-      return;
-   }
-
-   // Make sure the address is valid
-   var publicAddress = new Address(publicAddressString);
-   if(!publicAddress.isValid()){
-      callback("publicAddress is invalid Bitcoin address.");
+   // Make sure the public address was passed in and valid
+   if(!validateAddress(publicAddressString)){
+      callback("Invalid public address parameter.");
       return;
    }
 
    // Create a registration object with a random token
    var createdRequest = {
       address : publicAddressString,
-      secretToken : crypto.randomBytes(32).toString('hex'),
+      token : crypto.randomBytes(32).toString('hex'),
    };
 
-   AddressRegistration(createdRequest).save(function (err, tempChannel) {
+   AddressRegistration(createdRequest).save(function (err, tempRegistration) {
 
       if (err){
          console.log("Failed to save Address registration " + err);
@@ -48,8 +56,15 @@ SimpleService.prototype.registerAddress = function(publicAddressString, callback
       }else{
 
          // Success
-         console.log("Successfully created Request: " + createdRequest);
-         callback(null, createdRequest);
+         console.log("Successfully created Request: " + tempRegistration);
+
+         // Create the returned object
+         var returnedRegistration = {
+            address : tempRegistration.address,
+            token : tempRegistration.token
+         };
+
+         callback(null, returnedRegistration);
       }
    });
 
@@ -58,25 +73,30 @@ SimpleService.prototype.registerAddress = function(publicAddressString, callback
 /**
  * Takes a public address string, verifies it exists, then creates and saves a payment request for that address in the db.
  */
-SimpleService.prototype.getPaymentAddress = function(publicAddressString, callback){
+SimpleService.prototype.getPaymentAddress = function(publicAddressString, token, amountRequested, callback){
 
-   // Make sure the public address was passed in
-   if(publicAddressString === null || publicAddressString === ''){
-      callback("publicAddress parameter must not be empty.");
+   // Make sure the public address was passed in and valid
+   if(!validateAddress(publicAddressString)){
+      callback("Invalid public address parameter.");
       return;
    }
 
-   // Make sure the address is valid
-   var publicAddress = new Address(publicAddressString);
-   if(!publicAddress.isValid()){
-      callback("publicAddress is invalid Bitcoin address.");
+   // Make sure the token was passed in
+   if(!token || token === null || token === ''){
+      callback("token parameter must not be empty.");
       return;
    }
+
+     // Make sure the amountRequested requested is in a valid range
+  if(!amountRequested || (amountRequested && (amountRequested < Env.MIN_SIMPLE_PAYMENT_AMOUNT || amountRequested > 21000000))){
+    callback("Amount is invalid value.");
+    return;
+  }
 
    console.log("searching for " + publicAddressString);
 
    // Find the corresponding payment address registration
-   AddressRegistration.findOne({address: publicAddressString}, function(err, currentReg){
+   AddressRegistration.findOne({address: publicAddressString, token: token}, function(err, currentReg){
       if(err || !currentReg ){
          console.log("Failed to find payment registration for " + publicAddressString + " with error " + err);
          callback("Failed to find existing payment address registration " + publicAddressString);
@@ -101,6 +121,7 @@ SimpleService.prototype.getPaymentAddress = function(publicAddressString, callba
                clientAddress : publicAddressString,
                paymentAddress : generatedAddress,
                amountReceived : 0,
+               amountRequested : amountRequested,
                keyId : addressIndex
             };
 
@@ -131,7 +152,7 @@ SimpleService.prototype.getPaymentAddress = function(publicAddressString, callba
 
 };
 
-function getBalance(payment, amount, timeout, callback){
+function getBalance(payment, timeout, callback){
 
   Payment.findOne({paymentAddress: payment.paymentAddress}, function(err, currentPayment){
     if(err || !currentPayment ){
@@ -142,12 +163,14 @@ function getBalance(payment, amount, timeout, callback){
 
         var returnVal = {
              paymentAddress : currentPayment.paymentAddress,
-             amountReceived : currentPayment.amountReceived
+             amountReceived : currentPayment.amountReceived,
+             amountRequested : currentPayment.amountRequested,
           };
 
-        if(currentPayment.amountReceived >= amount){
+        if(currentPayment.amountReceived >= payment.amountRequested){
 
           // Payment has been made
+          returnVal.paid = true;
           returnVal.timeout = false;
           callback(null, returnVal);
 
@@ -157,13 +180,14 @@ function getBalance(payment, amount, timeout, callback){
           // Wait and check again in a second
           timeout = timeout - 1;
           setTimeout(function(){
-            getBalance(payment, amount, timeout, callback);
+            getBalance(payment, timeout, callback);
           }, 1000);
         }
         else{
 
           // Timed out after waiting
           returnVal.timeout = true;
+          returnVal.paid = false;
           callback(null, returnVal);
         }
       }
@@ -171,26 +195,14 @@ function getBalance(payment, amount, timeout, callback){
 }
 
 
-SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, timeout, callback){
+SimpleService.prototype.verifyPayment = function(paymentAddressString, timeout, callback){
 
-  // Make sure the public address was passed in
-  if(paymentAddressString === null || paymentAddressString === ''){
-    callback("publicAddress parameter must not be empty.");
-    return;
-  }
 
-  // Make sure the address is valid
-  var paymentAddress = new Address(paymentAddressString);
-  if(!paymentAddress.isValid()){
-    callback("paymentAddress is invalid Bitcoin address.");
-    return;
-  }
-
-  // Make sure the amount requested is in a valid range
-  if(amount && (amount < 0 || amount > 21000000)){
-    callback("Amount is invalid value.");
-    return;
-  }
+  // Make sure the payment address was passed in and valid
+   if(!validateAddress(paymentAddressString)){
+      callback("Invalid payment address parameter.");
+      return;
+   }
 
   // Make sure the timeout requested is in a valid range
   if(timeout && (timeout < 0 || timeout > 60)){
@@ -198,14 +210,14 @@ SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, t
     return;
   }
 
-  Payment.findOne({paymentAddress: paymentAddress}, function(err, currentPayment){
+  Payment.findOne({paymentAddress: paymentAddressString}, function(err, currentPayment){
     if(err || !currentPayment ){
          console.log("Failed to find payment request for " + paymentAddressString + " with error " + err);
          callback("Failed to find existing payment request for " + paymentAddressString);
          return;
       } else {
 
-        getBalance(currentPayment, amount, timeout, callback);
+        getBalance(currentPayment, timeout, callback);
       }
   });
 
@@ -214,18 +226,11 @@ SimpleService.prototype.verifyPayment = function(paymentAddressString, amount, t
 
 SimpleService.prototype.getHistory = function(publicAddressString, token, page, total, callback){
 
-  // Make sure the public address was passed in
-  if(publicAddressString === null || publicAddressString === ''){
-    callback("publicAddress parameter must not be empty.");
-    return;
-  }
-
-  // Make sure the address is valid
-  var publicAddress = new Address(publicAddressString);
-  if(!publicAddress.isValid()){
-    callback("paymentAddress is invalid Bitcoin address.");
-    return;
-  }
+  // Make sure the public address was passed in and valid
+   if(!validateAddress(publicAddressString)){
+      callback("Invalid public address parameter.");
+      return;
+   }
 
   // Make sure the token was passed in
   if(token === null || token === ''){
@@ -236,7 +241,7 @@ SimpleService.prototype.getHistory = function(publicAddressString, token, page, 
   console.log("Finding registration with address: " + publicAddressString +  " and token:" + token);
 
   // Search for the address registration with matching token
-  AddressRegistration.findOne({address: publicAddressString, secretToken : token}, function(err, currentRegistration){
+  AddressRegistration.findOne({address: publicAddressString, token : token}, function(err, currentRegistration){
 
     if(err || !currentRegistration ){
        console.log("Failed to find payment registration for " + publicAddressString + " with error " + err);
@@ -262,8 +267,8 @@ SimpleService.prototype.getHistory = function(publicAddressString, token, page, 
           var retList = [];
           paginatedResults.map( function(item) {
             var temp = {
-              clientAddress: item.clientAddress,
               paymentAddress: item.paymentAddress,
+              amountRequested : item.amountRequested,
               amountReceived: item.amountReceived
             };
 

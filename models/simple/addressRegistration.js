@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 var registrationSchema = mongoose.Schema({
 
    address: {type: String, required: true, unique: true},
-   secretToken: {type: String, required: true}
+   token: {type: String, required: true}
 
 });
 

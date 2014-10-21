@@ -40,6 +40,13 @@ describe('SimpleServiceTest', function () {
          });
       });
 
+      it('should validate input address null', function (done) {
+         svc.registerAddress(undefined, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
       it('should validate input address blank', function (done) {
 
          svc.registerAddress("", function(error, registration){
@@ -61,10 +68,10 @@ describe('SimpleServiceTest', function () {
          svc.registerAddress(addr1.toString(), function(error, registration){
             (!error || error === null).should.be.true;
             registration.should.be.ok;
-            registration.secretToken.should.be.ok;
+            registration.token.should.be.ok;
             registration.address.should.be.ok;
             registration.address.should.equal(addr1.toString());
-            addr1Token = registration.secretToken;
+            addr1Token = registration.token;
             done();
          });
 
@@ -84,7 +91,7 @@ describe('SimpleServiceTest', function () {
    describe('getPaymentAddress', function () {
 
       it('should validate input address null', function (done) {
-         svc.getPaymentAddress(null, function(error, registration){
+         svc.getPaymentAddress(null, null, 1, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -92,7 +99,22 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address blank', function (done) {
 
-         svc.getPaymentAddress("", function(error, registration){
+         svc.getPaymentAddress("", null, 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input address null and empty token', function (done) {
+         svc.getPaymentAddress(null, "", 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input address blankand empty token', function (done) {
+
+         svc.getPaymentAddress("", "", 1, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -100,24 +122,66 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address asdf', function (done) {
 
-         svc.getPaymentAddress("asdf", function(error, registration){
+         svc.getPaymentAddress("asdf", addr1Token, 1, function(error, registration){
             error.should.not.be.empty;
             done();
          });
       });
 
       it('should fail an unknown address', function (done) {
-         svc.getPaymentAddress(addr2.toString(), function(error, registration){
+         svc.getPaymentAddress(addr2.toString(), addr1Token, 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid token', function (done) {
+         svc.getPaymentAddress(addr1.toString(), "asdfasdfasdfasdf", 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid amount 0', function (done) {
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 0, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid amount -1', function (done) {
+         svc.getPaymentAddress(addr1.toString(), addr1Token, -1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid amount null', function (done) {
+         svc.getPaymentAddress(addr1.toString(), addr1Token, null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid amount 23 million', function (done) {
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 23000000, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should fail a valid address with invalid amount .0001', function (done) {
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 0.0001, function(error, registration){
             error.should.not.be.empty;
             done();
          });
       });
 
       it('should work a known address', function (done) {
-         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
             (!error || error === null).should.be.true;
             var firstAddress = registration.paymentAddress;
-            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
                var secondAddress = registration.paymentAddress;
                secondAddress.should.not.equal(firstAddress);
                done();
@@ -133,7 +197,7 @@ describe('SimpleServiceTest', function () {
    describe('verifyPayment', function () {
 
       it('should validate input address null', function (done) {
-         svc.verifyPayment(null, null, null, function(error, registration){
+         svc.verifyPayment(null, null, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -141,7 +205,7 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address blank', function (done) {
 
-         svc.verifyPayment("", null, null, function(error, registration){
+         svc.verifyPayment("", null, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -149,31 +213,16 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address asdf', function (done) {
 
-         svc.verifyPayment("asdf", null, null, function(error, registration){
+         svc.verifyPayment("asdf", null, function(error, registration){
             error.should.not.be.empty;
             done();
          });
       });
 
-      it('should validate input amount -1', function (done) {
-
-         svc.verifyPayment(addr1.toString(), -1, null, function(error, registration){
-            error.should.not.be.empty;
-            done();
-         });
-      });
-
-      it('should validate input amount 23000000', function (done) {
-
-         svc.verifyPayment(addr1.toString(), 23000000, null, function(error, registration){
-            error.should.not.be.empty;
-            done();
-         });
-      });
 
       it('should validate input timeout -1', function (done) {
 
-         svc.verifyPayment(addr1.toString(), 1, -1, function(error, registration){
+         svc.verifyPayment(addr1.toString(), -1, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -181,7 +230,7 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input timeout 61', function (done) {
 
-         svc.verifyPayment(addr1.toString(), 1, 61, function(error, registration){
+         svc.verifyPayment(addr1.toString(), 61, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -196,20 +245,20 @@ describe('SimpleServiceTest', function () {
          var hash = bitcore.util.sha256ripe160(key2.public);
          var addr3 = new bitcore.Address(version, hash);
 
-         svc.verifyPayment(addr3.toString(), null, null, function(error, paymentInfo){
+         svc.verifyPayment(addr3.toString(), null, function(error, paymentInfo){
             error.should.not.be.empty;
             done();
          });
       });
 
       it('should accept a known address but return 0 if no payment was made', function (done) {
-         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
             (!error || error === null).should.be.true;
             var firstAddress = registration.paymentAddress;
-            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
                var secondAddress = registration.paymentAddress;
 
-               svc.verifyPayment(secondAddress, 1, 0, function(error, paymentInfo){
+               svc.verifyPayment(secondAddress, 0, function(error, paymentInfo){
                    (!error || error === null).should.be.true;
 
                    paymentInfo.paymentAddress.should.equal(secondAddress);
@@ -224,13 +273,13 @@ describe('SimpleServiceTest', function () {
       });
 
       it('should accept a known address but return 0 if no payment was made after a timeout of 1 second', function (done) {
-         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
             (!error || error === null).should.be.true;
             var firstAddress = registration.paymentAddress;
-            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
                var secondAddress = registration.paymentAddress;
 
-               svc.verifyPayment(secondAddress, 1, 1, function(error, paymentInfo){
+               svc.verifyPayment(secondAddress, 1, function(error, paymentInfo){
                    (!error || error === null).should.be.true;
 
                    paymentInfo.paymentAddress.should.equal(secondAddress);
@@ -245,13 +294,13 @@ describe('SimpleServiceTest', function () {
       });
 
       it('should accept a known address and return manually set value during wait time', function (done) {
-         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
             (!error || error === null).should.be.true;
             var firstAddress = registration.paymentAddress;
-            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
                var secondAddress = registration.paymentAddress;
 
-               svc.verifyPayment(secondAddress, 1, 1, function(error, paymentInfo){
+               svc.verifyPayment(secondAddress, 1, function(error, paymentInfo){
                    (!error || error === null).should.be.true;
 
                    paymentInfo.paymentAddress.should.equal(secondAddress);
@@ -271,16 +320,16 @@ describe('SimpleServiceTest', function () {
       });
 
       it('should accept a known address and return manually set value if it is over requested amount', function (done) {
-         svc.getPaymentAddress(addr1.toString(), function(error, registration){
+         svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
             (!error || error === null).should.be.true;
             var firstAddress = registration.paymentAddress;
-            svc.getPaymentAddress(addr1.toString(), function(error, registration){
+            svc.getPaymentAddress(addr1.toString(), addr1Token, 1, function(error, registration){
                var secondAddress = registration.paymentAddress;
 
                Payment.findOne({paymentAddress: secondAddress}, function(err, currentPayment){
                   currentPayment.amountReceived = 100;
                   currentPayment.save(function (err, tempChannel) {
-                     svc.verifyPayment(secondAddress, 1, 0, function(error, paymentInfo){
+                     svc.verifyPayment(secondAddress, 0, function(error, paymentInfo){
                          (!error || error === null).should.be.true;
 
                          paymentInfo.paymentAddress.should.equal(secondAddress);

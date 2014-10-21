@@ -24,7 +24,7 @@ router.post('/addresses', function(req, res) {
 
 router.get('/payments', function(req, res) {
 
-   service.getPaymentAddress(req.query.publicAddress, function(error, paymentAddress){
+   service.getPaymentAddress(req.query.publicAddress, req.query.token, req.query.amountRequested, function(error, paymentAddress){
 
       // Check for failure
       if(error){
@@ -39,7 +39,7 @@ router.get('/payments', function(req, res) {
 
 router.get('/payments/:paymentAddress', function(req, res) {
 
-   service.verifyPayment(req.params.paymentAddress, req.query.amount, req.query.timeout, function(error, verification){
+   service.verifyPayment(req.params.paymentAddress, req.query.timeout, function(error, verification){
 
       // Check for failure
       if(error){
