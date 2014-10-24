@@ -33,7 +33,7 @@ function validateAddress(addressString){
 /**
  * Takes a public address string and returns a payment registration object
  */
-SimpleService.prototype.registerAddress = function(publicAddressString, callback){
+SimpleService.prototype.registerAddress = function(publicAddressString, threshold, callback){
 
    // Make sure the public address was passed in and valid
    if(!validateAddress(publicAddressString)){
@@ -41,10 +41,17 @@ SimpleService.prototype.registerAddress = function(publicAddressString, callback
       return;
    }
 
+   // Make sure the threshold is valid
+   if(!threshold || threshold < 0.0002 || threshold > 0.01){
+      callback("Invalid threshold parameter.");
+      return;
+   }
+
    // Create a registration object with a random token
    var createdRequest = {
       address : publicAddressString,
       token : crypto.randomBytes(32).toString('hex'),
+      threshold: threshold
    };
 
    AddressRegistration(createdRequest).save(function (err, tempRegistration) {
@@ -61,7 +68,8 @@ SimpleService.prototype.registerAddress = function(publicAddressString, callback
          // Create the returned object
          var returnedRegistration = {
             address : tempRegistration.address,
-            token : tempRegistration.token
+            token : tempRegistration.token,
+            threshold: tempRegistration.threshold
          };
 
          callback(null, returnedRegistration);
@@ -69,6 +77,20 @@ SimpleService.prototype.registerAddress = function(publicAddressString, callback
    });
 
 };
+
+/**
+ * Build a bitcoin payment Url from the payment object
+ */
+function buildUrl(payment){
+
+  var url = 'bitcoin:' +
+    payment.paymentAddress +
+    "?" +
+    "amount=" + payment.amountRequested +
+    "&gateway=http%3A%2F%2Fwww.microtrx.com" ;  // http://www.microtrx.com
+
+    return url;
+}
 
 /**
  * Takes a public address string, verifies it exists, then creates and saves a payment request for that address in the db.
@@ -135,7 +157,10 @@ SimpleService.prototype.getPaymentAddress = function(publicAddressString, token,
 
                   // Create the returned new payment address object
                   var returnVal = {
-                     paymentAddress : tempPayment.paymentAddress
+                     paymentAddress : tempPayment.paymentAddress,
+                     amountRequested : tempPayment.amountRequested,
+                     gateway : 'https://www.microtrx.com',
+                     url : buildUrl(tempPayment)
                   };
 
                   console.log("Successfully created paymentAddress: " + returnVal);

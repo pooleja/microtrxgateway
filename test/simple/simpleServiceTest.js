@@ -34,14 +34,14 @@ describe('SimpleServiceTest', function () {
    describe('registerAddress', function () {
 
       it('should validate input address null', function (done) {
-         svc.registerAddress(null, function(error, registration){
+         svc.registerAddress(null, 0.001, function(error, registration){
             error.should.not.be.empty;
             done();
          });
       });
 
       it('should validate input address null', function (done) {
-         svc.registerAddress(undefined, function(error, registration){
+         svc.registerAddress(undefined, 0.001, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -49,7 +49,7 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address blank', function (done) {
 
-         svc.registerAddress("", function(error, registration){
+         svc.registerAddress("", 0.001, function(error, registration){
             error.should.not.be.empty;
             done();
          });
@@ -58,19 +58,64 @@ describe('SimpleServiceTest', function () {
 
       it('should validate input address asdf', function (done) {
 
-         svc.registerAddress("asdf", function(error, registration){
+         svc.registerAddress("asdf", 0.001, function(error, registration){
             error.should.not.be.empty;
             done();
          });
       });
 
-      it('should save a registration', function (done) {
-         svc.registerAddress(addr1.toString(), function(error, registration){
+      it('should validate threshold null', function (done) {
+         svc.registerAddress(addr1.toString(), null, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+
+      });
+
+      it('should validate threshold 0', function (done) {
+         svc.registerAddress(addr1.toString(), 0, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate threshold 1', function (done) {
+         svc.registerAddress(addr1.toString(), 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate threshold 0.02', function (done) {
+         svc.registerAddress(addr1.toString(), 0.02, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate threshold 0.0001', function (done) {
+         svc.registerAddress(addr1.toString(), 0.0001, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate threshold -1', function (done) {
+         svc.registerAddress(addr1.toString(), -1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+
+      it('should save a registration even if threshold is string', function (done) {
+         svc.registerAddress(addr1.toString(), '0.001', function(error, registration){
             (!error || error === null).should.be.true;
             registration.should.be.ok;
             registration.token.should.be.ok;
             registration.address.should.be.ok;
             registration.address.should.equal(addr1.toString());
+            registration.threshold.should.equal(0.001);
             addr1Token = registration.token;
             done();
          });
@@ -79,7 +124,7 @@ describe('SimpleServiceTest', function () {
 
       it('should fail a second a registration', function (done) {
 
-         svc.registerAddress(addr1.toString(), function(error, registration){
+         svc.registerAddress(addr1.toString(), 0.001, function(error, registration){
             error.should.not.be.empty;
             done();
          });

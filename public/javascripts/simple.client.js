@@ -25,7 +25,8 @@ function registerAddress(){
 	$.ajax({
 		type: "POST",
 		url: "/api/v1/simple/addresses",
-		data: { publicAddress : $("#register-address-input").val() },
+		data: { publicAddress : $("#register-address-input").val(),
+				threshold: $("#register-threshold-input").val() },
 		dataType: "json"
 	})
 	.done(function(res){
@@ -63,7 +64,7 @@ function requestPaymentAddress(){
 		$("#get-payment-response").text(JSON.stringify(res, null, 2));
 
 		$("#qr-code").empty();
-		$("#qr-code").qrcode({width: 96,height: 96,text: res.result.paymentAddress });
+		$("#qr-code").qrcode({width: 128,height: 128,text: res.result.url });
 
 	})
 	.fail(function(data){

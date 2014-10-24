@@ -9,7 +9,7 @@ var service = new SimpleService();
  */
 router.post('/addresses', function(req, res) {
 
-   service.registerAddress(req.body.publicAddress, function(error, registration){
+   service.registerAddress(req.body.publicAddress, req.body.threshold, function(error, registration){
 
       // Check for failure
       if(error){
