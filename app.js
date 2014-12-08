@@ -12,7 +12,7 @@ var app = express();
 
 // Setup the mongodb connection
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/microtrxgateway');
+//mongoose.connect('mongodb://localhost/microtrxgateway');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
