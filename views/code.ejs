@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>microTrx</title>
+    <link type='css' rel='stylesheet' href='/stylesheets/bootstrap.min.css' />
+  </head>
+  <body>
+   <div class="container">
+
+    <% include nav %>
+
+    <p>
+    There are many code projects that have been created throughout the microTrx lifetime.  See below for the listing of currently available projects on Github.
+    </p>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><a href="https://github.com/pooleja/microtrxchannels" target="_blank">microtrxchannels</a></h3>
+      </div>
+      <div class="panel-body">
+
+        <p>
+        This was the first in depth investigation and implementation of Payment Channels on the Bitcoin network using an HTTP interface.  While others had proposed payment channels and some prototype code had been published, no one had ever created a simple Node.js implementation of the protocol that was open source.  This is James' first prototype to show its capabilities.
+        </p>
+
+        <p>
+        See the YouTube walkthrough <a href="http://youtu.be/HmYP-7pcdhM" targe="_blank">here.</a>
+        </p>
+
+        <div class="row">
+          <div class="col-md-1">
+            <a href="https://github.com/pooleja/microtrxchannels" target="_blank">
+              <img src="/images/GitHub_Logo.png" class="img-responsive" alt="Github Repo">
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><a href="https://github.com/pooleja/microtrxgateway" target="_blank">microtrxgateway</a></h3>
+      </div>
+      <div class="panel-body">
+
+        <p>
+        This code base is the website you are currently looking at.  It is meant to be the one stop shop for all things related to microTrx.  The code links, examples, docs, and API are all hosted in this application.
+        </p>
+
+        <p>
+        This application interacts with MongoDB, Bitcoin, and the microtrxpaymentprocessor application in order to provide all functionality.
+        </p>
+
+        <div class="row">
+          <div class="col-md-1">
+            <a href="https://github.com/pooleja/microtrxgateway" target="_blank">
+              <img src="/images/GitHub_Logo.png" class="img-responsive" alt="Github Repo">
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><a href="https://github.com/pooleja/microtrxpaymentprocessor" target="_blank">microtrxpaymentprocessor</a></h3>
+      </div>
+      <div class="panel-body">
+
+        <p>
+        This code is the logic behind validating payments on the microTrx server.  It listens to incoming Bitcoin transactions and determines if/when microTrx transactions have been paid.
+        </p>
+
+        <p>
+        This application interacts with MongoDB, Bitcoin, and the microtrxgateway application in order to provide all functionality.
+        </p>
+
+        <div class="row">
+          <div class="col-md-1">
+            <a href="https://github.com/pooleja/microtrxpaymentprocessor" target="_blank">
+              <img src="/images/GitHub_Logo.png" class="img-responsive" alt="Github Repo">
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+  </div>
+
+   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="javascripts/jquery-2.1.1.min.js"></script>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="javascripts/bootstrap.min.js"></script>
+
+  </body>
+</html>

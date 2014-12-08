@@ -28,6 +28,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/examples', routes);
+app.use('/code', routes);
+app.use('/api', routes);
+app.use('/about', routes);
 
 app.use('/api/v1/simple', simpleApiRoutes);
 

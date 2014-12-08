@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>microTrx</title>
+    <link type='css' rel='stylesheet' href='/stylesheets/bootstrap.min.css' />
+  </head>
+  <body>
+   <div class="container">
+
+    <% include nav %>
+
+    <div class="alert alert-warning" role="alert">Alert!  This API has been disabled while it is being re-implemented following BIP-32 HD Wallets.  This will allow payments addresses to be generated directly for the end user without forwarding.</div>
+
+    <div><span style="font-size: 24px;">Overview</span></div>
+<div><br/></div>
+<div>The MicroTrx Simple Payments (MSP) is the easiest way to use the payment gateway to accept bitcoins in your software or on your website.  It uses a combination of different HTTP API calls to set up a payment transaction, wait for payment confirmation, and forward the payment amount to your own personal address.<br/></div>
+<div><br/></div>
+<div>To use MSP, the following steps are required:</div>
+<div>
+<ul>
+<li>Register your Bitcoin address with MicroTrx</li>
+<li>Embed MicroTrx SP client code on your website</li>
+<li>Allow customers to make purchases</li>
+</ul>
+<div>To see an example of the payment gateway in action, click <font color="#FF3D34">Here</font>.</div>
+</div>
+<div><br/></div>
+<div><span style="font-size: 24px;">Usage Instructions</span></div>
+<div><br/></div>
+<div><b>Register your Bitcoin Address</b></div>
+<div><b><br/></b></div>
+<div>Follow the instructions <b><font color="#FF3D34">here</font></b> to register your Bitcoin address.  Input the Public Address where you would like payments to be forwarded after a customer sends payment.</div>
+<div><br/></div>
+<div>After you submit the public address to our server, you will be provided a secret token.  This shared secret will allow us to know if any requests for payment for your address are coming from you and not a bad actor trying to interfere with payments.  It will also allow you to look up the history of payments on our website without requiring username and password registration.  Keep this token secret and do not embed it in any client accessible libraries.</div>
+<div><br/></div>
+<div><b>Embed MicroTrx SP Client Code</b></div>
+<div><br/></div>
+<div>Once you have registered your address with MicroTrx, the next step is to embed the client code into your website.  There are a few different ways to accomplish this, but we will investigate the simplest method, which is the Javascript Website method.  This method allows you to create a paywall over HTML DIV elements.  When your website is loaded in the user’s browser, the DIV you set up will be hidden and only viewable via payment to your account.</div>
+<div><br/></div>
+<div>When the page is loaded in the clients browser, it will first check to see if the payment has been made to the server.  If the payment has been made, it will respond with the full text data.  If the payment has not been made, only partial content will be delivered to the customer and a paywall image will be loaded requesting the user to send the payment in order to view the full content.</div>
+<div><br/></div>
+<div>See <font color="#FF2A00">here</font> for a sample application that uses the MSP system as a paywall to content.</div>
+<div><br/></div>
+<div><b>Allow customers to make purchases</b></div>
+<div><br/></div>
+<div>Once your site is up and running customers will be able to send payments to unlock your content.  Every time your page loads, a new Payment Address will be used.  This will protect your privacy and also allow easier tracking of payments.  The Payment Address is owned by a wallet at MicroTrx.  Once the payment is received and confirmed, that payment will then be forwarded to your Public Address you registered in the beginning steps.</div>
+<div><br/></div>
+<div>As payments come into the MicroTrx payment gateway, they are verified by the server and then forwarded to your address.  Since the server must send a transaction to you, it will deduct the required transaction fee that the bitcoin network requires before the payment is broadcasted.  Because of this, there is a limit on the minimum value that can be charged using the MSP system of 0.002 BTC.</div>
+<div><br/></div>
+<div>If you would like to ever see an overview of the transactions that MicroTrx has processed for you, see <font color="#FF3D34">here</font> and enter your address and secret token.</div>
+<div><br/></div>
+<div><span style="font-size: 24px;">Technical Details</span></div>
+<div><br/></div>
+<div>If you would like to build your own integration with the MSP system, you can absolutely do this.  It uses simple HTTP requests to request a payment address and to wait for payment notification.  The following example will demo the calls required.</div>
+<div><br/></div>
+<div><b>Errors</b></div>
+<div><br/></div>
+<div>Any time you make an API request to the SP system, the result will include a “success” value to let you now whether the call encountered an error.  Errors can range from invalid input params to server side errors.  If an error is encountered, you will see a “false” success value returned with an error message.</div>
+<div><br/></div>
+<div>For example:</div>
+<div><br/></div>
+<div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">{ </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “success” : “false”, </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “error” : “Invalid publicAddress input parameter"</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">}</span></div>
+</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div><br/></div>
+<div><b>Register Your Public Address</b></div>
+<div><br/></div>
+<div>The first step is to register your public address <font color="#FF3D34">here</font>.  In addition you can register the address programmatically by making the following API call:</div>
+<div><br/></div>
+<div>POST https://www.microtrx.com/api/v1/simple/addresses</div>
+<div><br/></div>
+<div>POST Data:</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">{ </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “publicAddress": “1AfPdP28tRQfYgcfAeLV71rmJyTW46sBWh”</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">}</span></div>
+<div><br/></div>
+<div>Response Data:</div>
+<div><br/></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">{ </span></div>
+<div><font color="#333333" face="Helvetica Neue, Helvetica, Arial, sans-serif"><span style="-evernote-highlight:true;font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">   "success": "true”, </span></font></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">   "result": { </span></div>
+<div><font color="#333333" face="Helvetica Neue, Helvetica, Arial, sans-serif"><span style="-evernote-highlight:true;font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">     </span> <span style="-evernote-highlight:true;font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">"address": "mnB5Q4LyVp8f4aLFUpjQMD1xonFyULnP5A”, </span></font></div>
+<div><span style="-evernote-highlight:true;background-color: rgb(255, 250, 165);"><font color="#333333" face="Helvetica Neue, Helvetica, Arial, sans-serif"><span style="font-size: 14px; line-height: 20px;">      "token": "</span></font>my_secret_token<span style="font-size: 14px; line-height: 20px; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">” </span></span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">   }</span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; background-color: rgb(255, 250, 165);">}</span><br/></div>
+<div><br/></div>
+<div><b>Request New Payment Address</b></div>
+<div><br/></div>
+<div>Once you have registered your Public Address, the next step is to request an address for a customer to send a payment to.</div>
+<div><br/></div>
+<div>GET https://www.microtrx.com/api/v1/simple/payments?publicAddress=1AfPdP28tRQfYgcfAeLV71rmJyTW46sBWh&amp;token=my_secret_token&amp;amountRequested=0.001</div>
+<div><br/></div>
+<div>Request Query Parameters</div>
+<div>
+<ul>
+<li><b>publicAddress</b>: The clients registered public address</li>
+<li><b>token</b>: The token associated with the registered address</li>
+<li><b>amountRequested</b>: The minimum amount you are requiring to be sent to the Payment Address before you accept the payment as being complete.  This value is specified in BTC (e.g.”0.0001")</li>
+</ul>
+</div>
+<div><br/></div>
+<div>
+<div>Response Data:</div>
+<div><br/></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">{ </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “success” : “true”, </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “result” : </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   { </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “paymentAddress” : “1DpoofAj3PKmznST4WwpoA2Shr36bMQNPC”</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   }</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">}</span></div>
+</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div>Your application should then show the “paymentAddress” to the client with a payment amount requested in BTC.</div>
+<div><br/></div>
+<div><b>Verify Payment</b></div>
+<div><br/></div>
+<div>Once your application shows the Payment Address to the customer, it must detect when the payment is made so it can unlock the goods or services that the customer is paying for.  To do this, the following API call can be made:</div>
+<div><br/></div>
+<div>GET https://www.microtrx.com/api/v1/simple/payments/<b>:paymentAddress</b></div>
+<div><br/></div>
+<div>Where “:<b>paymentAddress</b>” is the Payment Address the customer is sending money to.</div>
+<div><br/></div>
+<div>Additionally there is one query parameter that can be specified for convenience:</div>
+<div>
+<ul>
+<li><b>timeout</b> - The amount of time in seconds you want the server to wait before returning if no payment has been sent.  The default value is “5” for five seconds.  The minimum value is “0” and maximum value is “60”.</li>
+</ul>
+<div>GET https://www.microtrx.com/api/v1/simple/payments/:paymentAddress?timeout=30</div>
+</div>
+<div><br/></div>
+<div>Response Data:</div>
+<div><br/></div>
+<div>Response if successfully received payment in the 30 seconds:</div>
+<div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">{ </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “success” : “true”, </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “result” : </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   { </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “paymentAddress” : “1DpoofAj3PKmznST4WwpoA2Shr36bMQNPC”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “amountRecieved” : “0.001”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “timeout” : “false”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “paid” : true</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   }</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">}</span></div>
+</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div>
+<div>Response if no payment was received (or only partial payment was received) in the 30 seconds:</div>
+<div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">{ </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “success” : “true”, </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   “result” : </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   { </span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “paymentAddress” : “1DpoofAj3PKmznST4WwpoA2Shr36bMQNPC”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “amountRecieved” : “0”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “timeout” : “true”,</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">     “paid” : false</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">   }</span></div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);">}</span></div>
+</div>
+</div>
+<div><br/></div>
+<div><b>Payment History</b></div>
+<div><br/></div>
+<div>To see a history of all payments made to your Public Address, you can make the following API call:</div>
+<div><br/></div>
+<div>GET https://www.microtrx.com/api/v1/simple/payments/:paymentAddress/history?token=my_secret_token</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div>
+<div>Response Data:</div>
+<div><br/></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">{ </span></div>
+<div><span style="background-color: rgb(255, 250, 165);"><font color="#333333"><span style="line-height: 20px;">     "success": "true”, </span></font></span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">     "result": [</span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">           { </span></div>
+<div><span style="background-color: rgb(255, 250, 165);"><font color="#333333"><span style="line-height: 20px;">               "paymentAddress": "mhb7odZDp5MVcTyZTMir3xoxrv2kGqafFw”, </span></font></span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">               "amountRequested": 0.0002, </span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">               "amountReceived": 0.0001</span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">           } </span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">     ] </span></div>
+<div><span style="-evernote-highlight:true;color: rgb(51, 51, 51); line-height: 20px; background-color: rgb(255, 250, 165);">}</span></div>
+</div>
+<div><span style="-evernote-highlight:true;background-color:rgb(255, 250, 165);"><br/></span></div>
+<div>Additionally, you can specify the following query parameters to allow paging:</div>
+<div>
+<ul>
+<li>“page” - start page of the records you would like to retrieve.  This value defaults to 1.</li>
+<li>“total” - total number of records in each page.</li>
+</ul>
+<div>For example, the following request could be used to view the 3rd Page of results if the page size is 50:</div>
+</div>
+<div><br/></div>
+<div>GET https://www.microtrx.com/api/v1/simple/payments/:paymentAddress/history?token=my_secret_token&amp;page=3&amp;total=50</div>
+<div><br/></div>
+
+   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="javascripts/jquery-2.1.1.min.js"></script>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="javascripts/bootstrap.min.js"></script>
+
+  </body>
+</html>
