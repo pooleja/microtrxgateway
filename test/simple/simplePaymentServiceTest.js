@@ -3,6 +3,8 @@ var bitcore = require('bitcore');
 var HDPrivateKey = bitcore.HDPrivateKey;
 var crypto = require('crypto');
 var Address = bitcore.Address;
+var PrivateKey = bitcore.PrivateKey;
+var PublicKey = bitcore.PublicKey;
 var Env = require('../../config/env.js');
 
 var mongoose = require('mongoose');
@@ -10,6 +12,18 @@ mongoose.connect('mongodb://localhost/microtrxgateway');
 var Payment = require('../../models/simple/payment.js');
 
 var svc = new SimpleService();
+
+function updatePaymentAmountReceived(paymentAddress, amount, callback){
+   // Find the payment address from a previous request
+  Payment.findOne({paymentAddress: paymentAddress}, function(err, foundPayment){
+
+      foundPayment.amountReceived = amount;
+      foundPayment.save(function (err, savedPayment) {
+         console.log("Updated amountReceived for " + savedPayment.paymentAddress + " to " + savedPayment.amountReceived);
+         callback();
+      });
+  });
+}
 
 describe('SimpleServiceTest', function () {
 
@@ -178,6 +192,197 @@ describe('SimpleServiceTest', function () {
 
          });
       });
+   });
+
+
+   // Test verifying a Payment Address
+   describe('verifyPayment', function () {
+
+      it('should validate input key null', function (done) {
+         svc.verifyPayment(null, function(error, paymentVerification){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input key empty', function (done) {
+         svc.verifyPayment("", function(error, paymentVerification){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input key garbage', function (done) {
+         svc.verifyPayment("gasdfasdf", function(error, paymentVerification){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate payment address was generated from a payment request', function (done) {
+
+         // Generate an address
+         var privateKey = new PrivateKey();
+         var publicKey = new PublicKey(privateKey);
+         var address = new Address(publicKey, Env.NETWORK);
+
+         // Address is randoma and not from a payment request so it should not find it
+         svc.verifyPayment(address.toString(), function(error, paymentVerification){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      // No payment made yet
+      it('should check if a payment was not made yet', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // Try to request 1 btc payment address
+            svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+               (!error || error === null).should.be.true;
+               paymentRequest.paymentAddress.should.not.be.empty;
+               paymentRequest.paymentUrl.should.not.be.empty;
+
+               // No Payment has been set yet, so request should not return an error but should show false as "paid"
+               svc.verifyPayment(paymentRequest.paymentAddress, function(error, paymentVerification){
+                  (!error || error === null).should.be.true;
+
+                  paymentVerification.paymentAddress.should.equal(paymentRequest.paymentAddress);
+                  paymentVerification.amountRequested.should.equal(1);
+                  paymentVerification.amountReceived.should.equal(0);
+                  paymentVerification.paid.should.equal(false);
+
+
+                  done();
+               });
+
+            });
+
+         });
+      });
+
+
+      // partial payment made
+      it('should validate partial payment', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // Try to request 1 btc payment address
+            svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+               (!error || error === null).should.be.true;
+               paymentRequest.paymentAddress.should.not.be.empty;
+               paymentRequest.paymentUrl.should.not.be.empty;
+
+               updatePaymentAmountReceived(paymentRequest.paymentAddress, 0.5, function(){
+
+                  // Only partial payment has been made
+                  svc.verifyPayment(paymentRequest.paymentAddress, function(error, paymentVerification){
+                     (!error || error === null).should.be.true;
+
+                     paymentVerification.paymentAddress.should.equal(paymentRequest.paymentAddress);
+                     paymentVerification.amountRequested.should.equal(1);
+                     paymentVerification.amountReceived.should.equal(0.5);
+                     paymentVerification.paid.should.equal(false);
+
+
+                     done();
+                  });
+               });
+
+            });
+
+         });
+      });
+
+      // exact payment made
+      it('should validate exact payment', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // Try to request 1 btc payment address
+            svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+               (!error || error === null).should.be.true;
+               paymentRequest.paymentAddress.should.not.be.empty;
+               paymentRequest.paymentUrl.should.not.be.empty;
+
+               updatePaymentAmountReceived(paymentRequest.paymentAddress, 1, function(){
+
+                  // Only partial payment has been made
+                  svc.verifyPayment(paymentRequest.paymentAddress, function(error, paymentVerification){
+                     (!error || error === null).should.be.true;
+
+                     paymentVerification.paymentAddress.should.equal(paymentRequest.paymentAddress);
+                     paymentVerification.amountRequested.should.equal(1);
+                     paymentVerification.amountReceived.should.equal(1);
+                     paymentVerification.paid.should.equal(true);
+
+
+                     done();
+                  });
+               });
+
+            });
+
+         });
+      });
+
+      // over payment made
+      it('should validate over payment', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // Try to request 1 btc payment address
+            svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+               (!error || error === null).should.be.true;
+               paymentRequest.paymentAddress.should.not.be.empty;
+               paymentRequest.paymentUrl.should.not.be.empty;
+
+               updatePaymentAmountReceived(paymentRequest.paymentAddress, 1.1, function(){
+
+                  // Only partial payment has been made
+                  svc.verifyPayment(paymentRequest.paymentAddress, function(error, paymentVerification){
+                     (!error || error === null).should.be.true;
+
+                     paymentVerification.paymentAddress.should.equal(paymentRequest.paymentAddress);
+                     paymentVerification.amountRequested.should.equal(1);
+                     paymentVerification.amountReceived.should.equal(1.1);
+                     paymentVerification.paid.should.equal(true);
+
+
+                     done();
+                  });
+               });
+
+            });
+
+         });
+      });
+
    });
 
 });

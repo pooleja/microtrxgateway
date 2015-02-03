@@ -8,30 +8,11 @@ var mongoose = require('mongoose');
 var PublicKeyRegistration = require('../models/simple/hdPublicKeyRegistration.js');
 var Payment = require('../models/simple/payment.js');
 
-var UrlService = require("./urlService.js");
+var BitcoinUtil = require("../util/bitcoinUtil.js");
+var btcUtil = new BitcoinUtil();
 
 function SimpleService(){
 
-}
-
-
-function validateBip38PublicKey(hdPublicKeyString){
-
-  try {
-    new HDPublicKey(hdPublicKeyString);
-  } catch(e) {
-    console.log("Invalid HD Public Key string " + hdPublicKeyString);
-    return false;
-  }
-
-  // Make sure it starts with 'xpub' so that we don't accept som of the other inputs that bitcore does
-  if(hdPublicKeyString.substring(0,4) != "xpub"){
-    console.log("Unsupported HD Public Key string " + hdPublicKeyString);
-    return false;
-  }
-
-  // no exception means success
-  return true;
 }
 
 /**
@@ -40,7 +21,7 @@ function validateBip38PublicKey(hdPublicKeyString){
 SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback){
 
    // Make sure the public key was passed in and valid
-   if(!validateBip38PublicKey(hdPublicKeyString)){
+   if(!btcUtil.isValidBip38PublicKey(hdPublicKeyString)){
       callback("Invalid HD public key parameter.");
       return;
    }
@@ -81,7 +62,7 @@ SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback
 SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amountRequested, callback){
 
   // Make sure the public key was passed in and valid
-   if(!validateBip38PublicKey(hdPublicKeyString)){
+   if(!btcUtil.isValidBip38PublicKey(hdPublicKeyString)){
       callback("Invalid HD public key parameter.");
       return;
    }
@@ -130,7 +111,7 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
          // Create the returned object
          var returnedPayment = {
             paymentAddress : savedPayment.paymentAddress,
-            paymentUrl : (new UrlService()).generatePaymentUrl(savedPayment.paymentAddress, amountRequested)
+            paymentUrl : btcUtil.generatePaymentUrl(savedPayment.paymentAddress, amountRequested)
          };
 
          callback(null, returnedPayment);
@@ -139,6 +120,40 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
 
    });
 
+  });
+
+};
+
+/**
+ * Verifies whether a payment has been made to the payment address
+ */
+SimpleService.prototype.verifyPayment = function(paymentAddress, callback){
+
+  // Make sure the payment address is valid
+  if(!btcUtil.isValidPublicAddress(paymentAddress)){
+      callback("Invalid HD public key parameter.");
+      return;
+  }
+
+  // Find the payment address from a previous request
+  Payment.findOne({paymentAddress: paymentAddress}, function(err, foundPayment){
+
+      // Validate if it was found
+      if(err || !foundPayment ){
+         console.log("Failed to find payment request for " + paymentAddress + " with error " + err);
+         callback("Failed to find existing payment address request for " + paymentAddress);
+         return;
+      }
+
+      var returnedPayment = {
+        paymentAddress : foundPayment.paymentAddress,
+        amountRequested : foundPayment.amountRequested,
+        amountReceived : foundPayment.amountReceived,
+        paid : foundPayment.amountReceived >= foundPayment.amountRequested
+      };
+
+      callback(null, returnedPayment);
+      return;
   });
 
 };
