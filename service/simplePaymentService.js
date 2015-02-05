@@ -158,4 +158,57 @@ SimpleService.prototype.verifyPayment = function(paymentAddress, callback){
 
 };
 
+/**
+ * Gets payment history records for the public key
+ */
+SimpleService.prototype.paymentHistory = function(hdPublicKey, page, count, callback){
+
+  // Make sure the public key was passed in and valid
+  if(!btcUtil.isValidBip38PublicKey(hdPublicKey)){
+     callback("Invalid HD public key parameter.");
+     return;
+  }
+
+  // Find the key registration
+  PublicKeyRegistration.findOne({publicKey: hdPublicKey}, function(err, foundRegistration){
+
+      // Validate if it was found
+      if(err || !foundRegistration ){
+         console.log("Failed to find registered key " + hdPublicKey + " with error " + err);
+         callback("Failed to find existing registered key " + hdPublicKey);
+         return;
+      }
+
+      var startPage = 1;
+      if(page && page > 0)
+        startPage = page;
+
+      var countRet = 10;
+      if(count && count > 0 && count <= 100)
+        countRet = count;
+
+      Payment.paginate({hdPublicKey: hdPublicKey}, startPage, countRet, function(error, pageCount, paginatedResults, itemCount) {
+        if (error) {
+          console.log("Failed to find payment history for " + publicAddressString + " with error " + err);
+           callback("Failed to find history for " + publicAddressString);
+           return;
+        } else {
+
+          var retList = [];
+          paginatedResults.map( function(item) {
+            var temp = {
+              paymentAddress: item.paymentAddress,
+              amountRequested : item.amountRequested,
+              amountReceived: item.amountReceived
+            };
+
+            retList.push(temp);
+          });
+
+          callback(null, retList);
+        }
+      }, { sortBy : { '_id' : -1 } });
+  });
+};
+
 module.exports = SimpleService;

@@ -11,6 +11,8 @@ var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/microtrxgateway');
 var Payment = require('../../models/simple/payment.js');
 
+var async = require("async");
+
 var svc = new SimpleService();
 
 function updatePaymentAmountReceived(paymentAddress, amount, callback){
@@ -119,6 +121,12 @@ describe('SimpleServiceTest', function () {
          });
       });
 
+      it('should validate unknown unput public key', function (done) {
+         svc.requestPaymentAddress("xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8", 1, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
 
       it('should validate bounds on payment amount', function (done) {
          var hdPrivateKey = new HDPrivateKey();
@@ -384,5 +392,179 @@ describe('SimpleServiceTest', function () {
       });
 
    });
+
+   // Test requesting a Payment Address
+   describe('requestPaymentAddress', function () {
+
+      it('should validate input key null', function (done) {
+         svc.paymentHistory(null, 1, 10, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input key empty', function (done) {
+         svc.paymentHistory("", 1, 10, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input key garbage', function (done) {
+         svc.paymentHistory("gasdfasdf", 1, 10, function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate input key private key', function (done) {
+         svc.paymentHistory("xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi", 1, 10,
+          function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate unknown unput public key', function (done) {
+         svc.paymentHistory("xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8", 1, 10,
+          function(error, registration){
+            error.should.not.be.empty;
+            done();
+         });
+      });
+
+      it('should validate a single payment request that was filed', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // Try to request 1 btc payment address
+            svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+               (!error || error === null).should.be.true;
+               paymentRequest.paymentAddress.should.not.be.empty;
+               paymentRequest.paymentUrl.should.not.be.empty;
+
+               updatePaymentAmountReceived(paymentRequest.paymentAddress, 1, function(){
+
+                 // Now request payment history
+                 svc.paymentHistory(hdPrivateKey.hdPublicKey.xpubkey, 1, 10, function(error, history){
+                   (!error || error === null).should.be.true;
+                   history.length.should.equal(1);
+
+                   history[0].paymentAddress.should.equal(paymentRequest.paymentAddress);
+                   history[0].amountRequested.should.equal(1);
+                   history[0].amountReceived.should.equal(1);
+
+                   done();
+                 });
+
+               });
+
+            });
+
+         });
+      });
+
+      it('should validate multiple payment requests that were filed', function (done) {
+
+         var hdPrivateKey = new HDPrivateKey();
+
+         // Register an address
+         svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
+            (!error || error === null).should.be.true;
+            registration.publicKey.should.be.ok;
+            registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
+
+            // In parallel request some payment addresses and update the paid values
+            async.parallel([
+              function(callback){
+                // Try to request 1 btc payment address
+                svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 1, function(error, paymentRequest){
+                   (!error || error === null).should.be.true;
+                   paymentRequest.paymentAddress.should.not.be.empty;
+                   paymentRequest.paymentUrl.should.not.be.empty;
+
+                   updatePaymentAmountReceived(paymentRequest.paymentAddress, 1, function(){
+                      callback(null, {req : paymentRequest, paid : 1});
+                   });
+                });
+              },
+              function(callback){
+                // Try to request 1 btc payment address
+                svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 2, function(error, paymentRequest){
+                   (!error || error === null).should.be.true;
+                   paymentRequest.paymentAddress.should.not.be.empty;
+                   paymentRequest.paymentUrl.should.not.be.empty;
+
+                   updatePaymentAmountReceived(paymentRequest.paymentAddress, 10, function(){
+                      callback(null, {req : paymentRequest, paid : 10});
+                   });
+                });
+              },
+              function(callback){
+                // Try to request 1 btc payment address
+                svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 3, function(error, paymentRequest){
+                   (!error || error === null).should.be.true;
+                   paymentRequest.paymentAddress.should.not.be.empty;
+                   paymentRequest.paymentUrl.should.not.be.empty;
+
+                   updatePaymentAmountReceived(paymentRequest.paymentAddress, 3, function(){
+                      callback(null, {req : paymentRequest, paid : 3});
+                   });
+                });
+              },
+              function(callback){
+                // Try to request 1 btc payment address
+                svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 4, function(error, paymentRequest){
+                   (!error || error === null).should.be.true;
+                   paymentRequest.paymentAddress.should.not.be.empty;
+                   paymentRequest.paymentUrl.should.not.be.empty;
+
+                   updatePaymentAmountReceived(paymentRequest.paymentAddress, 4, function(){
+                      callback(null, {req : paymentRequest, paid : 4});
+                   });
+                });
+              },
+              function(callback){
+                // Try to request 1 btc payment address
+                svc.requestPaymentAddress(hdPrivateKey.hdPublicKey.xpubkey, 5, function(error, paymentRequest){
+                   (!error || error === null).should.be.true;
+                   paymentRequest.paymentAddress.should.not.be.empty;
+                   paymentRequest.paymentUrl.should.not.be.empty;
+
+                   updatePaymentAmountReceived(paymentRequest.paymentAddress, 0, function(){
+                      callback(null, {req : paymentRequest, paid : 0});
+                   });
+                });
+              },
+            ], function(err, results){
+
+              // Now request payment history
+              svc.paymentHistory(hdPrivateKey.hdPublicKey.xpubkey, 1, 10, function(error, history){
+                (!error || error === null).should.be.true;
+                history.length.should.equal(results.length);
+
+                for (var i = 0; i < results.length; i++) {
+                  history[i].paymentAddress.should.equal(results[i].req.paymentAddress);
+                  history[i].amountRequested.should.equal(results[i].req.amountRequested);
+                  history[i].amountReceived.should.equal(results[i].paid);
+                }
+
+                done();
+              });
+
+
+            });
+
+         });
+      });
+
+
+  });
 
 });
