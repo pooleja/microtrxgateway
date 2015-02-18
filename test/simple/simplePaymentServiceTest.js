@@ -549,10 +549,11 @@ describe('SimpleServiceTest', function () {
                 (!error || error === null).should.be.true;
                 history.length.should.equal(results.length);
 
+                // Results are in reverse order
                 for (var i = 0; i < results.length; i++) {
-                  history[i].paymentAddress.should.equal(results[i].req.paymentAddress);
-                  history[i].amountRequested.should.equal(results[i].req.amountRequested);
-                  history[i].amountReceived.should.equal(results[i].paid);
+                  history[i].paymentAddress.should.equal(results[4 - i].req.paymentAddress);
+                  history[i].amountRequested.should.equal(5 - i);
+                  history[i].amountReceived.should.equal(results[ 4 - i].paid);
                 }
 
                 done();
