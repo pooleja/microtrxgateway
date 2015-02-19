@@ -21,8 +21,8 @@ BitcoinUtil.prototype.isValidBip38PublicKey = function(hdPublicKeyString){
     return false;
   }
 
-  // Make sure it starts with 'xpub' so that we don't accept some of the other inputs that bitcore does
-  if(hdPublicKeyString.substring(0,4) != "xpub"){
+  // Make sure it starts with 'xpub' or 'tpub' so that we don't accept some of the other inputs that bitcore does
+  if(hdPublicKeyString.substring(0,4) != "xpub" && hdPublicKeyString.substring(0,4) != "tpub"){
     console.log("Unsupported HD Public Key string " + hdPublicKeyString);
     return false;
   }

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var SimpleService = require('../service/simplePaymentService');
-var svc = new SimpleService();
+var service = new SimpleService();
 /**
  * Request handler for POST to /addresses.
  *
@@ -9,7 +9,9 @@ var svc = new SimpleService();
  */
 router.post('/keys', function(req, res) {
 
-   service.registerAddress(req.body.publicKey, function(error, registration){
+   service.registerPublicKey(req.body.publicKey, function(error, registration){
+
+     console.log(req.body.publicKey);
 
       // Check for failure
       if(error){

@@ -8,14 +8,12 @@
    <div class="container">
       <% include ../nav %>
 
-      <div class="alert alert-warning" role="alert">Alert!  This API has been disabled while it is being re-implemented following BIP-32 HD Wallets.  This will allow payments addresses to be generated directly for the end user without forwarding.</div>
-
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Random Address </h3>
+          <h3 class="panel-title">Random Public Key (for testing)</h3>
         </div>
         <div class="panel-body">
-          <div id="random-address" class="well"></div>
+          <div id="random-key" class="well"></div>
         </div>
       </div>
 
@@ -27,15 +25,11 @@
 
 
             <div class="form-group">
-              <label>Your public Bitcoin address you would like to register</label>
-              <input type="text" class="form-control" rows="3" id="register-address-input" value="" placeholder="e.g. 1ER5pwPacNQ33UsGNRiUtZ7MnQzei9RTNm"></input>
-
-              <br />
-              <label>Payment Send Threshold.  Value received from Micropayment Channels will be send once it reaches this threshold. (.0002 to .01)</label>
-              <input type="text" class="form-control" rows="3" id="register-threshold-input" value=".001" placeholder=""></input>
+              <label>Your BIP38 Public Key you would like to register</label>
+              <input type="text" class="form-control" rows="3" id="register-key-input" value="" placeholder="e.g. xpub661MyMwAqRbcFBZoQf8P4UgHnVZQYLAdFSc2ETgubGurYoDx6S77fgLtxCWdUGSMfkDaeChqWiG5FPkgFZryVCAWFYippE8LWU53yztqWxf"></input>
             </div>
 
-            <button id="register-address-button" type="submit" class="btn btn-default" >Register</button>
+            <button id="register-key-button" type="submit" class="btn btn-default" >Register</button>
          <br />
          <br />
 
@@ -144,15 +138,14 @@
 
 
    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="javascripts/jquery-2.1.1.min.js"></script>
+    <script src="/javascripts/jquery-2.1.1.min.js"></script>
 
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="javascripts/bootstrap.min.js"></script>
+    <script src="/javascripts/bitcore.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
 
-
-    <script src="javascripts/bundle.js"></script>
-    <script src="javascripts/jquery.qrcode.min.js"></script>
-    <script src="javascripts/simple.client.js"></script>
+    <script src="/javascripts/jquery.qrcode.min.js"></script>
+    <script src="/javascripts/simple.client.js"></script>
 
   </body>
 </html>
