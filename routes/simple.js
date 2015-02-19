@@ -26,7 +26,7 @@ router.post('/keys', function(req, res) {
 
 router.get('/payments', function(req, res) {
 
-   service.getPaymentAddress(req.query.publicKey, req.query.amountRequested, function(error, paymentAddress){
+   service.requestPaymentAddress(req.query.publicKey, req.query.amountRequested, function(error, paymentAddress){
 
       // Check for failure
       if(error){
@@ -41,7 +41,7 @@ router.get('/payments', function(req, res) {
 
 router.get('/payments/:paymentAddress', function(req, res) {
 
-   service.verifyPayment(req.params.paymentAddress, req.query.timeout, function(error, verification){
+   service.verifyPayment(req.params.paymentAddress, function(error, verification){
 
       // Check for failure
       if(error){
@@ -56,7 +56,7 @@ router.get('/payments/:paymentAddress', function(req, res) {
 
 router.get('/keys/:key/history', function(req, res) {
 
-   service.getHistory(req.params.key, req.query.page, req.query.total, function(error, verification){
+   service.paymentHistory(req.params.key, req.query.page, req.query.total, function(error, verification){
 
       // Check for failure
       if(error){

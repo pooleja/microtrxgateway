@@ -39,8 +39,7 @@ function requestPaymentAddress(){
 	$.ajax({
 		type: "GET",
 		url: "/api/v1/simple/payments?" +
-			"publicAddress=" + $("#get-payment-address-input").val() +
-			"&token=" + $("#get-payment-token-input").val() +
+			"publicKey=" + $("#get-payment-key-input").val() +
 			"&amountRequested=" + $("#get-payment-amount-input").val(),
 		dataType: "json"
 	})
@@ -52,7 +51,7 @@ function requestPaymentAddress(){
 		$("#get-payment-response").text(JSON.stringify(res, null, 2));
 
 		$("#qr-code").empty();
-		$("#qr-code").qrcode({width: 128,height: 128,text: res.result.url });
+		$("#qr-code").qrcode({width: 128,height: 128,text: res.result.paymentUrl });
 
 	})
 	.fail(function(data){
@@ -93,12 +92,11 @@ function getHistory(){
 
 	var page = $("#get-history-page-input").val();
 	var count = $("#get-history-page-count-input").val();
-	var token = $("#get-history-token-input").val();
 
 	$.ajax({
 		type: "GET",
-		url: "/api/v1/simple/payments/" + $("#get-history-input").val() + "/history" + "?token=" + token +
-			"&page=" + page + "&total=" + count,
+		url: "/api/v1/simple/keys/" + $("#get-history-input").val() + "/history" + "?"
+			+ "&page=" + page + "&total=" + count,
 		dataType: "json"
 	})
 	.done(function(res){
