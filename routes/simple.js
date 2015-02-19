@@ -2,10 +2,9 @@ var express = require('express');
 var router = express.Router();
 var SimpleService = require('../service/simplePaymentService');
 var service = new SimpleService();
+
 /**
- * Request handler for POST to /addresses.
- *
- * Handler will create a new payment address using the public address specified in the POST data.
+ * Handler will register a new public key for payments
  */
 router.post('/keys', function(req, res) {
 
@@ -24,6 +23,9 @@ router.post('/keys', function(req, res) {
    });
 });
 
+/**
+ * Handler will create a new payment address using the public key specified
+ */
 router.get('/payments', function(req, res) {
 
    service.requestPaymentAddress(req.query.publicKey, req.query.amountRequested, function(error, paymentAddress){
@@ -39,9 +41,12 @@ router.get('/payments', function(req, res) {
    });
 });
 
+/**
+ * Handler will check to see if payment has been made.  Will retry until timeout is 0 if specified.
+ */
 router.get('/payments/:paymentAddress', function(req, res) {
 
-   service.verifyPayment(req.params.paymentAddress, function(error, verification){
+   service.verifyPaymentWithTimeout(req.params.paymentAddress, req.query.timeout, function(error, verification){
 
       // Check for failure
       if(error){
@@ -54,6 +59,9 @@ router.get('/payments/:paymentAddress', function(req, res) {
    });
 });
 
+/**
+ * Handler will return a list of payment requests and statuses
+ */
 router.get('/keys/:key/history', function(req, res) {
 
    service.paymentHistory(req.params.key, req.query.page, req.query.total, function(error, verification){

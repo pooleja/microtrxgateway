@@ -125,6 +125,43 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
 };
 
 /**
+ * Verifies whether a payment has been made to the payment address.
+ * If valid payment has not been yet recieved it will wait until timeout has expired, checking every second.
+ */
+SimpleService.prototype.verifyPaymentWithTimeout = function(paymentAddress, timeout, callback){
+
+  console.log("Checking payment");
+  console.log(paymentAddress);
+  console.log(timeout);
+
+  var svcObj = this;
+
+  // Check for payment
+  svcObj.verifyPayment(paymentAddress, function(err, returnedPayment){
+
+    console.log("back from Checking payment");
+
+    // If timeout is still valid and haven't been paid
+    if(!err && timeout && timeout > 0 && !returnedPayment.paid){
+
+      console.log("calling set timeout");
+
+      // Wait a second before trying again
+      setTimeout(function(){
+          svcObj.verifyPaymentWithTimeout(paymentAddress, timeout - 1, callback);
+        }, 1000);
+
+    }else{
+      console.log("calling callback");
+      callback(err, returnedPayment);
+    }
+
+  });
+
+};
+
+
+/**
  * Verifies whether a payment has been made to the payment address
  */
 SimpleService.prototype.verifyPayment = function(paymentAddress, callback){
