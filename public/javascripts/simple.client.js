@@ -51,7 +51,7 @@ function requestPaymentAddress(){
 		$("#get-payment-response").text(JSON.stringify(res, null, 2));
 
 		$("#qr-code").empty();
-		$("#qr-code").qrcode({width: 128,height: 128,text: res.result.paymentUrl });
+		$("#qr-code").qrcode({width: 200,height: 200,text: res.result.paymentUrl });
 
 	})
 	.fail(function(data){
