@@ -8,7 +8,7 @@ var PublicKey = bitcore.PublicKey;
 var Env = require('../../config/env.js');
 
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/microtrxgateway');
+mongoose.connect(Env.MONGO_CONNECTION_STRING);
 var Payment = require('../../models/simple/payment.js');
 
 var async = require("async");

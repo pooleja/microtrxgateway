@@ -1,0 +1,34 @@
+- Set up firewall on VM
+
+sudo apt-get install ufw
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow www
+sudo ufw enable
+
+- Set up Nodejs
+sudo apt-get update
+sudo apt-get install nodejs
+sudo apt-get install npm
+
+- Set up nginx
+sudo apt-get install nginx
+sudo service nginx start
+update-rc.d nginx defaults
+
+- Install Forever
+npm install forever -g
+
+- Pull down the apps (duplicating for testnet versions)
+sudo apt-get install git
+mkdir /opt/microtrx
+cd /opt/microtrx
+git clone https://github.com/pooleja/microtrxgateway.git
+git clone https://github.com/pooleja/microtrxgateway.git testnet_microtrxgateway
+git clone https://github.com/pooleja/microtrxpaymentprocessor.git
+git clone https://github.com/pooleja/microtrxpaymentprocessor.git testnet_microtrxpaymentprocessor
+
+- Set up testnet config
+cd /opt/microtrx/testnet_microtrxgateway/
+cp ./config/env.js.template ./config/env.js

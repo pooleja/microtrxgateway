@@ -8,11 +8,13 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var simpleApiRoutes = require('./routes/simple');
 
+var Env = require('./config/env.js');
+
 var app = express();
 
 // Setup the mongodb connection
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/microtrxgateway');
+mongoose.connect(Env.MONGO_CONNECTION_STRING);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
