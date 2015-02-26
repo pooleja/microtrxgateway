@@ -1,3 +1,6 @@
+Many steps taken from here: https://www.digitalocean.com/community/tutorials/how-to-host-multiple-node-js-applications-on-a-single-vps-with-nginx-forever-and-crontab
+
+
 - Set up firewall on VM
 
 sudo apt-get install ufw
@@ -19,6 +22,7 @@ update-rc.d nginx defaults
 
 - Install Forever
 npm install forever -g
+ln -s /usr/bin/nodejs /usr/bin/node
 
 - Pull down the apps (duplicating for testnet versions)
 sudo apt-get install git
@@ -29,6 +33,62 @@ git clone https://github.com/pooleja/microtrxgateway.git testnet_microtrxgateway
 git clone https://github.com/pooleja/microtrxpaymentprocessor.git
 git clone https://github.com/pooleja/microtrxpaymentprocessor.git testnet_microtrxpaymentprocessor
 
-- Set up testnet config
+- Set up testnet config for gateway
 cd /opt/microtrx/testnet_microtrxgateway/
 cp ./config/env.js.template ./config/env.js
+vi ./bin/www (change port to 8080)
+npm install
+forever start --spinSleepTime 10000 ./bin/www
+
+- Set up testnet paymentprocessor
+cd /opt/microtrx/testnet_microtrxpaymentprocessor/
+cp ./config/env.js.template ./config/env.js
+forever start --spinSleepTime 10000 app.js
+
+- Set up proxy
+vi /etc/nginx/conf.d/www.microtrx.com.conf
+
+server {
+    listen 80;
+
+    server_name testnet.microtrx.com;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+sudo service nginx stop
+sudo service nginx start
+
+
+- Add crontab for reboots of apps
+cd /opt/microtrx/testnet_microtrxgateway/
+vi starter.sh
+#!/bin/sh
+
+if [ $(ps -e -o uid,cmd | grep $UID | grep node | grep -v grep | wc -l | tr -s "\n") -eq 0 ]
+then
+        export PATH=/usr/local/bin:$PATH
+        forever start --sourceDir /opt/microtrx/testnet_microtrxgateway/ ./bin/www >> /opt/microtrx/testnet_microtrxgateway/log.txt 2>&1
+fi
+
+
+cd /opt/microtrx/testnet_microtrxpaymentprocessor/
+vi starter.sh
+#!/bin/sh
+
+if [ $(ps -e -o uid,cmd | grep $UID | grep node | grep -v grep | wc -l | tr -s "\n") -eq 0 ]
+then
+        export PATH=/usr/local/bin:$PATH
+        forever start --sourceDir /opt/microtrx/testnet_microtrxpaymentprocessor/ app.js >> /opt/microtrx/testnet_microtrxpaymentprocessor/log.txt 2>&1
+fi
+
+crontab -e
+@reboot /opt/microtrx/testnet_microtrxpaymentprocessor/starter.sh
+@reboot /opt/microtrx/testnet_microtrxgateway/starter.sh
