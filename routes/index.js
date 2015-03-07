@@ -18,6 +18,10 @@ router.get('/examples/simple', function(req, res) {
   res.render('examples/simple', pageData);
 });
 
+router.get('/examples/video', function(req, res) {
+  res.render('examples/video', pageData);
+});
+
 router.get('/code', function(req, res) {
   res.render('code', pageData);
 });
