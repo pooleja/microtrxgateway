@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sample Article</title>
+  </head>
+  <body>
+  <div class="container">
+
+    <% include ../nav %>
+
+    <div class="panel panel-default ">
+
+      <div class="panel-heading">
+        <h1>SAMPLE TUTORIAL</h1>
+      </div>
+
+
+      <div id="test" class="payment-required">
+
+        <p><strong>Overview</strong></p>
+        <p>Machine learning is a pretty complex topic that many articles online have been written about, but most of them are pretty hard to understand.&nbsp; I would like to create an artifact on the web that might serve as a starting point to understanding the basics and figuring out how to use LibSVM and apply it to machine learning use cases.</p>
+        <p>Just some background about LibSVM… it is a “free” library that is available <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/" target="_blank">here</a>.&nbsp; Essentially, this library allows you to take some historical data, train your SVM to build a model, and then use this model to predict the outcome of new instances of your data.</p>
+        <p><strong>The Data</strong></p>
+        <p>For this tutorial, I’m going to be using the pretty standard use case of SPAM detection.&nbsp; If we are able to look at past emails that have been marked as SPAM/Not SPAM, can we accurately predict whether a new email is SPAM or not?&nbsp; While the data being used in this tutorial is obviously contrived, it will demonstrate how the same logic could be used for non-trivial cases.</p>
+        <p>Here we go…</p>
+        <p>Here are the sample emails we will use for our training set.&nbsp; The first set of emails will be our SPAM set and the second will be valid, Not SPAM emails.</p>
+        <p><strong>SPAM</strong></p>
+        <p>Email1</p>
+        <blockquote><p><em>“Buy Viagra cheap”</em></p></blockquote>
+        <p>Email2</p>
+        <blockquote><p><em>“Cheap drugs, with no prescriptions”</em></p></blockquote>
+        <p>Email3</p>
+        <blockquote><p><em>“Buy drugs by mail”</em></p></blockquote>
+        <p>Email4</p>
+        <blockquote><p><em>“Viagra, Cialis, ED, others”</em></p></blockquote>
+        <p>Email5</p>
+        <blockquote><p><em>“Buy prescriptions drugs like viagra, cialis, and others.”</em></p></blockquote>
+        <p><strong>Not SPAM</strong><br>
+        Email6</p>
+        <blockquote><p><em>“Hi James you are great”</em></p></blockquote>
+        <p>Email7</p>
+        <blockquote><p><em>“James, here is a picture of my dog”</em></p></blockquote>
+        <p>Email8</p>
+        <blockquote><p><em>“Adding James to the email list”</em></p></blockquote>
+        <p>Email9</p>
+        <blockquote><p><em>“Send me a picture of your dog”</em></p></blockquote>
+        <p>Email10</p>
+        <blockquote><p><em>“James&nbsp; we are going to give you a raise”</em></p></blockquote>
+        <p>&nbsp;</p>
+        <p>There you have it.&nbsp; The initial data is 10 emails.&nbsp; In the next step, we will pre-process these emails to a format that LibSVM understands, so that we can train our model.</p>
+
+      </div>
+
+
+    </div>
+  </div>
+
+  <link type='css' rel='stylesheet' href='/stylesheets/bootstrap.min.css' />
+  <link type='css' rel='stylesheet' href='/stylesheets/style.css' />
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="/javascripts/jquery-2.1.1.min.js"></script>
+  <script src="/javascripts/jquery.qrcode.min.js"></script>
+  <script src="/javascripts/paywall.example.js"></script>
+
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="/javascripts/bootstrap.min.js"></script>
+
+  </body>
+</html>

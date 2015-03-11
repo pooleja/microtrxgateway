@@ -22,6 +22,10 @@ router.get('/examples/video', function(req, res) {
   res.render('examples/video', pageData);
 });
 
+router.get('/examples/paywall', function(req, res) {
+  res.render('examples/paywall', pageData);
+});
+
 router.get('/code', function(req, res) {
   res.render('code', pageData);
 });

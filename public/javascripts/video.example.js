@@ -2,6 +2,10 @@
 $( document ).ready(function() {
 
   videojs("example_video_1", {}, function(){
+
+    // Set controls on - initially having it on was causing problems with the page loading size
+    this.controls(true);
+
     // Player (this) is initialized and ready.
     this.on("ended",function(){
 
