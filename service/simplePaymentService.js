@@ -88,7 +88,7 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
 
     // Generate the newpayment address based on the index from the registration
     var currentHdPukblicKey = new HDPublicKey(hdPublicKeyString);
-    var derivedAddress = new Address(currentHdPukblicKey.derive(registration.keyIndex).publicKey, Env.NETWORK);
+    var derivedAddress = new Address(currentHdPukblicKey.derive(0).derive(registration.keyIndex).publicKey, Env.NETWORK);
 
     // Create the payment object to save
     var createdPayment = {

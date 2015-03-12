@@ -12,7 +12,7 @@ $( document ).ready(function() {
 
 
 function generatePaymentDetails(div){
-  var pubKey = 'tpubD6NzVbkrYhZ4XxRtduffgxdp8xyJ7DEXeffPYHbeWjMd65vMHkszWJzrFdW9PLCgTAAGw6J8ZAUNFfyEY8doUnGVbAySgjF2CQuewbk7bPk';
+  var pubKey = 'xpub67ujJDAmJod4LCTGWBvXy6M47yhgmi1de2uNN6V7qoBptMgttCEUZQbQRwsEnFLTgzb7TvH1D18ZShssKxrvFowrrALv99C81aF9zBB58ym';
   var amount = '0.0001';
 
   $.ajax({
