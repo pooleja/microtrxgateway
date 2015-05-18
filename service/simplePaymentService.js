@@ -33,25 +33,55 @@ SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback
       publicKey : hdPublicKeyString
    };
 
-   PublicKeyRegistration(createdRequest).save(function (err, tempRegistration) {
+   // See if the public key is already registered
+   PublicKeyRegistration.findOne({publicKey: hdPublicKeyString}, function(err, foundRegistration){
 
-      if (err){
-         console.log("Failed to save HD public key registration " + err);
-         callback("Failed to save Address Registration.  Ensure this key has not already been registered.");
-         return;
-      }else{
+     if (err){
 
-         // Success
-         console.log("Successfully saved HD public key register request: " + tempRegistration);
+        // Error
+        console.log("Failed to search for HD key registration " + err);
+        callback("Failed to find Address Registration.");
+        return;
 
-         // Create the returned object
-         var returnedRegistration = {
-            publicKey : tempRegistration.publicKey,
-         };
+     }
+     else if (foundRegistration){
 
-         callback(null, returnedRegistration);
-         return;
-      }
+       // Success - Key has already been registered
+       console.log("Found previous registered HD public key: " + hdPublicKeyString);
+
+       // Create the returned object
+       var returnedRegistration = {
+          publicKey : foundRegistration.publicKey
+       };
+
+       callback(null, returnedRegistration);
+       return;
+     }
+     else{
+
+       // Key has not been registered, so go ahead and do so
+       PublicKeyRegistration(createdRequest).save(function (err, tempRegistration) {
+
+          if (err){
+             console.log("Failed to save HD public key registration " + err);
+             callback("Failed to save Address Registration.");
+             return;
+          }else{
+
+             // Success
+             console.log("Successfully saved HD public key register request: " + tempRegistration);
+
+             // Create the returned object
+             var returnedRegistration = {
+                publicKey : tempRegistration.publicKey
+             };
+
+             callback(null, returnedRegistration);
+             return;
+          }
+       });
+     }
+
    });
 
 };

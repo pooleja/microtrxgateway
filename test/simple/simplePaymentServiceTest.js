@@ -71,7 +71,7 @@ describe('SimpleServiceTest', function () {
          });
       });
 
-      it('should fail duplicate valid public key registrations', function (done) {
+      it('should allow duplicate valid public key registrations', function (done) {
          var hdPrivateKey = new HDPrivateKey();
 
          // First should pass
@@ -80,9 +80,11 @@ describe('SimpleServiceTest', function () {
             registration.publicKey.should.be.ok;
             registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
 
-            // Second should fail
+            // Second should succeed as well
             svc.registerPublicKey(hdPrivateKey.hdPublicKey.xpubkey, function(error, registration){
-               error.should.not.be.empty;
+              (!error || error === null).should.be.true;
+              registration.publicKey.should.be.ok;
+              registration.publicKey.should.equal(hdPrivateKey.hdPublicKey.xpubkey);
                done();
             });
          });

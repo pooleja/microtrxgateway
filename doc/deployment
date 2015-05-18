@@ -15,6 +15,8 @@ sudo apt-get update
 sudo apt-get install nodejs
 sudo apt-get install npm
 
+sudo ln -s `which nodejs` /usr/local/bin/node
+
 - Set up nginx
 sudo apt-get install nginx
 sudo service nginx start
@@ -69,6 +71,8 @@ sudo service nginx start
 
 - Add crontab for reboots of apps
 cd /opt/microtrx/testnet_microtrxgateway/
+
+
 vi starter.sh
 #!/bin/sh
 
@@ -80,6 +84,8 @@ fi
 
 
 cd /opt/microtrx/testnet_microtrxpaymentprocessor/
+
+
 vi starter.sh
 #!/bin/sh
 
@@ -92,3 +98,29 @@ fi
 crontab -e
 @reboot /opt/microtrx/testnet_microtrxpaymentprocessor/starter.sh
 @reboot /opt/microtrx/testnet_microtrxgateway/starter.sh
+
+
+
+# HTTPS server - SSL Redirect
+
+server {
+    listen       443;
+    server_name  video.microtrx.com;
+
+    ssl                  on;
+        ssl_certificate      /opt/microtrx/certs/microtrx.com.chained.crt;
+        ssl_certificate_key  /opt/microtrx/certs/microtrx.com.key;
+
+        ssl_session_timeout  5m;
+
+        ssl_protocols  SSLv2 SSLv3 TLSv1;
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers   on;
+
+        location ~ {
+            proxy_set_header X-Real-IP  $remote_addr;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_set_header Host $host;
+            proxy_pass http://localhost:8081;
+        }
+}
