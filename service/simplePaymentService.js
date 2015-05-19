@@ -98,7 +98,7 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
    }
 
   // Validate the amount requested
-  if(amountRequested > 21000000 || amountRequested < 0.0000546 ){
+  if(amountRequested > 21000000 || amountRequested < 0.00000546 ){
     console.log("Invalid payment request amount passed in: " + amountRequested);
     callback("Invalid amount requested for payment.");
     return;
