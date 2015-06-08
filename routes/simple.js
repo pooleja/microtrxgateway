@@ -8,7 +8,7 @@ var service = new SimpleService();
  */
 router.post('/keys', function(req, res) {
 
-   service.registerPublicKey(req.body.publicKey, function(error, registration){
+   service.registerPublicKey(req.body.publicKey, req.body.walletType, function(error, registration){
 
      console.log(req.body.publicKey);
 

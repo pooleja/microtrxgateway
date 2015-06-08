@@ -124,3 +124,8 @@ server {
             proxy_pass http://localhost:8081;
         }
 }
+
+
+
+
+db.hdpublickeyregistrations.update({}, {$set: { walletType: 'bip44' }}, {'multi' : true})

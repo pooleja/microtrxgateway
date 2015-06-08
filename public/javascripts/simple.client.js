@@ -11,10 +11,16 @@ function generateRandomKey(){
 
 function registerPublicKey(){
 
+	var wType = $("#register-walletType-input").val();
+  if(wType != "bip44" && wType != "bip32"){
+		$("#register-response").text("Invalid Wallet Type.");
+		return;
+	}
+
 	$.ajax({
 		type: "POST",
 		url: "/api/v1/simple/keys",
-		data: { publicKey : $("#register-key-input").val()},
+		data: { publicKey : $("#register-key-input").val(), walletType : wType},
 		dataType: "json"
 	})
 	.done(function(res){

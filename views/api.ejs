@@ -116,9 +116,14 @@ POST Data:
 
 <pre><code>
 {
-   “publicKey": “xpub661MyMwAqRbcFBZoQf8P4UgHnVZQYLAdFSc2ETgubGurYoDx6S77fgLtxCWdUGSMfkDaeChqWiG5FPkgFZryVCAWFYippE8LWU53yztqWxf”
+   “publicKey": “xpub661MyMwAqRbcFBZoQf8P4UgHnVZQYLAdFSc2ETgubGurYoDx6S77fgLtxCWdUGSMfkDaeChqWiG5FPkgFZryVCAWFYippE8LWU53yztqWxf”,
+   "walletType" : "bip44"
 }
 </code></pre>
+
+<p>
+The "walletType" parameter is optional and will determine how the receive addresses are generated from the xPub.  It will default to "bip44" if not specified.  Valid params are "bip44" or "bip32".
+</p>
 
 <p>
 Response Data:
@@ -132,6 +137,7 @@ Response Data:
    }
 }
 </code></pre>
+
 
 <h3>
 Request New Payment Address

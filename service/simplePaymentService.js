@@ -18,7 +18,7 @@ function SimpleService(){
 /**
  * Takes a bip 38 public key string and returns a payment registration object
  */
-SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback){
+SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, wType, callback){
 
    // Make sure the public key was passed in and valid
    if(!btcUtil.isValidBip38PublicKey(hdPublicKeyString)){
@@ -26,11 +26,22 @@ SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback
       return;
    }
 
+   console.log("Wallet type: " + wType);
+
+   // Set the wallet type if it is valid
+   var walletType = 'bip44';
+   if(wType){
+     if(wType == 'bip32'){
+       walletType = 'bip32';
+     }
+   }
+
    console.log("Registering public key "+ hdPublicKeyString);
 
    // Create a registration object
    var createdRequest = {
-      publicKey : hdPublicKeyString
+      publicKey : hdPublicKeyString,
+      walletType : walletType
    };
 
    // See if the public key is already registered
@@ -49,9 +60,16 @@ SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback
        // Success - Key has already been registered
        console.log("Found previous registered HD public key: " + hdPublicKeyString);
 
+       if(foundRegistration.walletType != walletType){
+         console.log("Wallet is trying to re-register with different type");
+         callback("Wallet was already registered with a different type.  Register with different xpub.");
+         return;
+       }
+
        // Create the returned object
        var returnedRegistration = {
-          publicKey : foundRegistration.publicKey
+          publicKey : foundRegistration.publicKey,
+          walletType : foundRegistration.walletType
        };
 
        callback(null, returnedRegistration);
@@ -73,7 +91,8 @@ SimpleService.prototype.registerPublicKey = function(hdPublicKeyString, callback
 
              // Create the returned object
              var returnedRegistration = {
-                publicKey : tempRegistration.publicKey
+                publicKey : tempRegistration.publicKey,
+                walletType : tempRegistration.walletType
              };
 
              callback(null, returnedRegistration);
@@ -118,7 +137,14 @@ SimpleService.prototype.requestPaymentAddress = function(hdPublicKeyString, amou
 
     // Generate the newpayment address based on the index from the registration
     var currentHdPukblicKey = new HDPublicKey(hdPublicKeyString);
-    var derivedAddress = new Address(currentHdPukblicKey.derive(0).derive(registration.keyIndex).publicKey, Env.NETWORK);
+
+    // Default to bip32 key derivation
+    var derivationKey = currentHdPukblicKey;
+    if(registration.walletType == 'bip44'){
+      derivationKey = derivationKey.derive(0);
+    }
+
+    var derivedAddress = new Address(derivationKey.derive(registration.keyIndex).publicKey, Env.NETWORK);
 
     // Create the payment object to save
     var createdPayment = {
